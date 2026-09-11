@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<title>LFG</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens (dark-first: bare :root is dark) ---------- */
+  :root{
+    --bg:#101119;
+    --stage-a:#0c0d13;
+    --stage-b:#181a26;
+    --surface:#1c1e28;
+    --surface-2:#23252f;
+    --surface-3:#2b2d3a;
+    --text:#f4f1ea;
+    --text-muted:#9496a8;
+    --text-faint:#63657a;
+    --accent:#ff5a3c;
+    --accent-dim:#5c2a20;
+    --accent-ink:#1b0b06;
+    --teal:#4cc9c0;
+    --pass:#6c6e80;
+    --border:rgba(244,241,234,0.09);
+    --border-strong:rgba(244,241,234,0.16);
+    --shadow:rgba(0,0,0,0.5);
+    --danger:#e4483a;
+    --chip-bg:rgba(244,241,234,0.06);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f2efe8;
+      --stage-a:#e7e2d6;
+      --stage-b:#f6f3ec;
+      --surface:#ffffff;
+      --surface-2:#faf7f1;
+      --surface-3:#f0ece2;
+      --text:#1c1d24;
+      --text-muted:#68697a;
+      --text-faint:#9a9baa;
+      --accent:#e0472a;
+      --accent-dim:#f6d9d0;
+      --accent-ink:#ffffff;
+      --teal:#1f8f86;
+      --pass:#8b8c9c;
+      --border:rgba(28,29,36,0.10);
+      --border-strong:rgba(28,29,36,0.18);
+      --shadow:rgba(30,26,20,0.16);
+      --danger:#c8382a;
+      --chip-bg:rgba(28,29,36,0.05);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f2efe8;
+    --stage-a:#e7e2d6;
+    --stage-b:#f6f3ec;
+    --surface:#ffffff;
+    --surface-2:#faf7f1;
+    --surface-3:#f0ece2;
+    --text:#1c1d24;
+    --text-muted:#68697a;
+    --text-faint:#9a9baa;
+    --accent:#e0472a;
+    --accent-dim:#f6d9d0;
+    --accent-ink:#ffffff;
+    --teal:#1f8f86;
+    --pass:#8b8c9c;
+    --border:rgba(28,29,36,0.10);
+    --border-strong:rgba(28,29,36,0.18);
+    --shadow:rgba(30,26,20,0.16);
+    --danger:#c8382a;
+    --chip-bg:rgba(28,29,36,0.05);
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(120% 90% at 50% -10%, var(--stage-b), var(--stage-a) 65%);
+    color:var(--text);
+    font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px 16px;
+  }
+  h1,h2,h3{font-family:'Chakra Petch', ui-sans-serif, system-ui, sans-serif; text-wrap:balance; margin:0;}
+  .mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  /* ---------- phone stage ---------- */
+  .phone{
+    position:relative;
+    width:min(412px, 100vw);
+    height:min(890px, 100dvh);
+    background:var(--surface);
+    border-radius:38px;
+    overflow:hidden;
+    box-shadow: 0 30px 70px var(--shadow), 0 0 0 1px var(--border-strong);
+    display:flex;
+    flex-direction:column;
+    isolation:isolate;
+  }
+  @media (max-width:460px){
+    body{padding:0;}
+    .phone{width:100vw; height:100dvh; border-radius:0; box-shadow:none;}
+  }
+
+  .screen{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
+    scrollbar-width:none;
+  }
+  .screen::-webkit-scrollbar{display:none;}
+
+  /* ---------- shared bits ---------- */
+  .build-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .build-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+  .logo{display:inline-flex; align-items:center; gap:9px;}
+  .logo-mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg, var(--accent), #ff8a5c); display:flex;align-items:center;justify-content:center; flex-shrink:0; box-shadow:0 4px 14px rgba(255,90,60,0.35);}
+  .logo-word{font-family:'Chakra Petch'; font-weight:700; font-size:20px; letter-spacing:.02em;}
+
+  .field{display:flex; flex-direction:column; gap:7px; margin-bottom:16px;}
+  .field label{font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted);}
+  .field input{
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    color:var(--text);
+    border-radius:12px;
+    padding:13px 14px;
+    font-size:15px;
+    font-family:inherit;
+    outline:none;
+    transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--accent);}
+  .field input.invalid{border-color:var(--danger);}
+  .field .err{font-size:12px; color:var(--danger); min-height:14px;}
+
+  .btn{
+    border:none; border-radius:13px; padding:14px 18px; font-size:15px; font-weight:600;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .12s ease, opacity .15s;
+    font-family:inherit;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--accent); color:var(--accent-ink);}
+  .btn-ghost{background:var(--surface-2); color:var(--text); border:1.5px solid var(--border);}
+  .btn-link{background:none; color:var(--teal); padding:4px; font-weight:600;}
+  .btn-block{width:100%;}
+  .btn[disabled]{opacity:.45; pointer-events:none;}
+
+  .auth-wrap{padding:38px 26px 30px; display:flex; flex-direction:column; min-height:100%;}
+  .auth-head{margin-bottom:30px;}
+  .auth-tag{color:var(--text-muted); font-size:14px; margin-top:8px; line-height:1.5;}
+  .auth-foot{margin-top:auto; padding-top:22px; text-align:center; font-size:13.5px; color:var(--text-muted);}
+  .divider-row{display:flex; align-items:center; gap:10px; margin:22px 0; color:var(--text-faint); font-size:12px; letter-spacing:.06em; text-transform:uppercase;}
+  .divider-row::before, .divider-row::after{content:""; flex:1; height:1px; background:var(--border);}
+
+  /* ---------- otp ---------- */
+  .otp-row{display:flex; gap:9px; margin:6px 0 26px;}
+  .otp-row input{
+    width:100%; aspect-ratio:1; text-align:center; font-size:20px; font-weight:700;
+    font-family:'IBM Plex Mono'; background:var(--surface-2); border:1.5px solid var(--border);
+    border-radius:12px; color:var(--text); outline:none;
+  }
+  .otp-row input:focus{border-color:var(--accent);}
+
+  /* ---------- chips ---------- */
+  .chip-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    padding:9px 14px; border-radius:100px; background:var(--chip-bg); border:1.5px solid var(--border);
+    font-size:13.5px; font-weight:600; color:var(--text-muted); cursor:pointer; transition:.15s;
+    display:inline-flex; align-items:center; gap:6px; user-select:none;
+  }
+  .chip.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+
+  .avatar-grid{display:flex; flex-wrap:wrap; gap:10px;}
+  .avatar-opt{
+    width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    font-size:24px; cursor:pointer; border:2.5px solid transparent; transition:.15s;
+  }
+  .avatar-opt.on{border-color:var(--accent);}
+
+  /* ---------- app shell ---------- */
+  .app-header{
+    padding:16px 20px 12px; display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0; border-bottom:1px solid var(--border); background:var(--surface);
+    position:relative; z-index:5;
+  }
+  .header-title{font-family:'Chakra Petch'; font-weight:700; font-size:18px; letter-spacing:.01em;}
+  .header-sub{font-size:12px; color:var(--text-muted); margin-top:2px;}
+  .icon-btn{
+    width:36px;height:36px;border-radius:11px;background:var(--surface-2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);
+  }
+
+  .tab-content{flex:1; min-height:0; overflow-y:auto; scrollbar-width:none; background:var(--bg);}
+  .tab-content::-webkit-scrollbar{display:none;}
+  .tab-pane{padding:18px 18px 110px;}
+
+  /* ---------- bottom nav ---------- */
+  .navbar{
+    position:absolute; left:0; right:0; bottom:0; z-index:20;
+    display:flex; justify-content:center; padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));
+    pointer-events:none;
+  }
+  .navbar-inner{
+    pointer-events:auto;
+    display:flex; gap:4px; background:color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter:blur(16px) saturate(1.4);
+    border:1px solid var(--border-strong);
+    border-radius:22px; padding:8px; box-shadow:0 12px 30px var(--shadow);
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  .navbar-inner.faded{opacity:.32; transform:translateY(8px) scale(.98);}
+  .nav-btn{
+    width:64px; padding:8px 4px 7px; border:none; background:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px; border-radius:15px;
+    color:var(--text-faint); transition:color .15s, background .15s;
+  }
+  .nav-btn svg{width:21px;height:21px;}
+  .nav-btn span{font-size:10.5px; font-weight:600; letter-spacing:.02em;}
+  .nav-btn.active{color:var(--accent); background:var(--accent-dim);}
+
+  /* ---------- swipe deck ---------- */
+  .filter-row{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 4px; margin-bottom:14px; scrollbar-width:none;}
+  .filter-row::-webkit-scrollbar{display:none;}
+  .filter-chip{flex-shrink:0; padding:8px 13px; border-radius:100px; background:var(--surface-2); border:1.5px solid var(--border); font-size:12.5px; font-weight:600; color:var(--text-muted); cursor:pointer; white-space:nowrap;}
+  .filter-chip.on{background:var(--text); color:var(--bg); border-color:var(--text);}
+
+  .deck{position:relative; height:min(560px, 62vh); margin:0 auto 16px; width:100%;}
+  .card{
+    position:absolute; inset:0; border-radius:26px; overflow:hidden; background:var(--surface-2);
+    border:1px solid var(--border); box-shadow:0 20px 40px var(--shadow);
+    display:flex; flex-direction:column; touch-action:none; will-change:transform;
+    transition:transform .32s cubic-bezier(.2,.8,.3,1), opacity .32s;
+  }
+  .card.dragging{transition:none;}
+  .card-art{
+    height:56%; position:relative; display:flex; align-items:center; justify-content:center;
+    font-size:76px; flex-shrink:0;
+  }
+  .card-art .indie-flag{
+    position:absolute; top:12px; left:12px; background:rgba(16,17,25,0.55); color:#fff;
+    font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+    padding:5px 9px; border-radius:100px; backdrop-filter:blur(6px);
+  }
+  .stamp{
+    position:absolute; top:26px; padding:7px 16px; border:3.5px solid; border-radius:10px;
+    font-family:'Chakra Petch'; font-weight:700; font-size:22px; letter-spacing:.06em;
+    transform:rotate(-14deg); opacity:0; pointer-events:none; text-transform:uppercase;
+  }
+  .stamp.like{right:20px; border-color:var(--accent); color:var(--accent);}
+  .stamp.pass{left:20px; border-color:var(--pass); color:var(--pass); transform:rotate(14deg);}
+
+  .card-body{padding:16px 18px 14px; display:flex; flex-direction:column; gap:8px; flex:1; min-height:0;}
+  .card-title-row{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+  .card-title{font-family:'Chakra Petch'; font-size:19px; font-weight:700;}
+  .card-price{font-family:'IBM Plex Mono'; font-weight:600; font-size:13.5px; color:var(--teal); flex-shrink:0;}
+  .card-tagline{font-size:12.5px; color:var(--text-muted); margin-top:-4px;}
+  .card-tags{display:flex; gap:6px; flex-wrap:wrap;}
+  .tag{font-size:10.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; padding:4px 9px; border-radius:100px; background:var(--chip-bg); color:var(--text-muted);}
+  .tag.mode{background:var(--accent-dim); color:var(--accent);}
+  .card-desc{font-size:12.5px; color:var(--text-muted); line-height:1.5; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+  .card-quote{margin-top:auto; font-size:11.5px; color:var(--text-faint); font-style:italic; border-left:2px solid var(--border-strong); padding-left:8px;}
+
+  .deck-controls{display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:6px;}
+  .round-btn{
+    width:56px;height:56px;border-radius:50%; border:1.5px solid var(--border-strong); background:var(--surface);
+    display:flex;align-items:center;justify-content:center; cursor:pointer; box-shadow:0 8px 18px var(--shadow);
+  }
+  .round-btn.pass{color:var(--pass);}
+  .round-btn.like{color:var(--accent); width:64px;height:64px;}
+  .round-btn.info{width:44px;height:44px; color:var(--teal);}
+  .round-btn svg{width:24px;height:24px;}
+
+  .affinity-note{display:flex; align-items:center; gap:7px; justify-content:center; font-size:12px; color:var(--text-muted); margin-bottom:14px;}
+  .affinity-note b{color:var(--teal); font-weight:600;}
+
+  .empty-deck{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:14px; padding:40px 20px;}
+  .empty-deck .glyph{font-size:52px;}
+
+  /* ---------- lists (store / indie) ---------- */
+  .section-label{font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:4px 0 10px;}
+  .list-card{
+    display:flex; gap:12px; padding:12px; background:var(--surface); border:1px solid var(--border);
+    border-radius:17px; margin-bottom:11px; align-items:flex-start;
+  }
+  .list-art{width:58px;height:58px;border-radius:13px; flex-shrink:0; display:flex;align-items:center;justify-content:center; font-size:28px;}
+  .list-body{flex:1; min-width:0;}
+  .list-title-row{display:flex; justify-content:space-between; gap:8px; align-items:baseline;}
+  .list-title{font-family:'Chakra Petch'; font-weight:600; font-size:15px;}
+  .platform-row{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;}
+  .plat-btn{
+    font-size:11px; font-weight:600; padding:6px 10px; border-radius:9px; background:var(--surface-2);
+    border:1px solid var(--border); text-decoration:none; color:var(--text); display:inline-flex; gap:5px; align-items:center;
+  }
+  .remove-x{background:none;border:none;color:var(--text-faint); cursor:pointer; padding:4px; flex-shrink:0;}
+
+  .empty-hint{text-align:center; padding:50px 24px; color:var(--text-muted); font-size:13.5px; line-height:1.6;}
+
+  .indie-hero{
+    background:linear-gradient(135deg, var(--surface-3), var(--surface-2)); border:1px solid var(--border);
+    border-radius:20px; padding:20px; margin-bottom:20px;
+  }
+  .indie-hero h2{font-size:19px; margin-bottom:8px;}
+  .indie-hero p{font-size:13px; color:var(--text-muted); line-height:1.55; margin:0 0 14px;}
+
+  .form-note{font-size:11.5px; color:var(--text-faint); margin-top:-8px; margin-bottom:16px; line-height:1.5;}
+  textarea{
+    background:var(--surface-2); border:1.5px solid var(--border); color:var(--text); border-radius:12px;
+    padding:12px 14px; font-size:14px; font-family:inherit; resize:vertical; min-height:70px; outline:none;
+  }
+  textarea:focus{border-color:var(--accent);}
+
+  /* ---------- profile ---------- */
+  .profile-head{display:flex; flex-direction:column; align-items:center; text-align:center; padding:12px 0 22px;}
+  .profile-avatar{width:78px;height:78px;border-radius:24px; display:flex;align-items:center;justify-content:center; font-size:36px; margin-bottom:12px; box-shadow:0 10px 24px var(--shadow);}
+  .profile-name{font-size:20px; margin-bottom:3px;}
+  .profile-tag{font-size:13px; color:var(--text-muted);}
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:20px 0 22px;}
+  .stat-card{background:var(--surface); border:1px solid var(--border); border-radius:15px; padding:14px 8px; text-align:center;}
+  .stat-num{font-family:'IBM Plex Mono'; font-weight:600; font-size:19px; color:var(--teal);}
+  .stat-lbl{font-size:10.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:3px;}
+  .menu-row{
+    display:flex; align-items:center; justify-content:space-between; padding:15px 4px; border-bottom:1px solid var(--border);
+    cursor:pointer;
+  }
+  .menu-row:last-child{border-bottom:none;}
+  .menu-row-left{display:flex; align-items:center; gap:12px; font-size:14.5px; font-weight:500;}
+
+  .back-header{display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); flex-shrink:0;}
+  .toggle{width:42px;height:25px;border-radius:100px; background:var(--surface-3); position:relative; cursor:pointer; flex-shrink:0; border:1px solid var(--border);}
+  .toggle.on{background:var(--accent);}
+  .toggle-knob{position:absolute; top:2px; left:2px; width:19px;height:19px;border-radius:50%; background:#fff; transition:transform .18s;}
+  .toggle.on .toggle-knob{transform:translateX(17px);}
+
+  .danger-btn{color:var(--danger); background:none; border:1.5px solid var(--danger); border-radius:12px; padding:12px; font-weight:600; font-size:13.5px; cursor:pointer; width:100%;}
+  .confirm-row{display:flex; gap:8px;}
+  .confirm-row .btn{flex:1;}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:absolute; left:20px; right:20px; bottom:96px; z-index:50;
+    background:var(--text); color:var(--bg); padding:13px 16px; border-radius:13px; font-size:13.5px; font-weight:600;
+    box-shadow:0 14px 30px var(--shadow); display:flex; align-items:center; gap:9px;
+    animation:toast-in .28s ease;
+  }
+  @keyframes toast-in{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (prefers-reduced-motion: reduce){
+    .card, .navbar-inner, .toast, .toggle-knob{transition:none !important; animation:none !important;}
+  }
+</style>
+
+<div class="phone" id="phone">
+  <div id="screen" class="screen"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= mock data ================= */
+  var GAMES = [
+    {id:"ashfall-keep", title:"Ashfall Keep", tagline:"A keep that remembers every death.", genres:["Roguelike","RPG"], mode:"Singleplayer", price:19.99, glyph:"🏰", grad:["#3a1f18","#6b2e1e"], desc:"Claw back up a collapsing fortress one procedurally-cursed run at a time. Every death rewires the keep's floors for the next attempt.", quote:"The best roguelike structure since the genre got popular.", outlet:"Pixel & Ink", indie:false, platforms:["steam","xbox"]},
+    {id:"nightshift-diner", title:"Nightshift Diner", tagline:"Serve the 3am crowd. All of them.", genres:["Simulation","Comedy"], mode:"Co-op", price:12.99, glyph:"🍳", grad:["#2a1f3d","#4a2f66"], desc:"Run a diner that only opens after midnight, for customers who are only sort of human. Split shifts with a friend before the coffee runs out.", quote:"Overcooked energy with an actual sense of humor.", outlet:"Couch Co-op Weekly", indie:false, platforms:["steam","playstation"]},
+    {id:"vector-static", title:"Vector Static", tagline:"Tune the signal before it forgets you.", genres:["Puzzle","Sci-Fi"], mode:"Singleplayer", price:0, glyph:"📡", grad:["#0f2a33","#134a52"], desc:"A minimalist signal-tracing puzzler where every solved frequency reshapes the next one. No dialogue, no timer, just static and geometry.", quote:"Quietly one of the smartest puzzle games this year.", outlet:"The Backlog Report", indie:true, platforms:["steam"]},
+    {id:"palefire-rally", title:"Palefire Rally", tagline:"Wet asphalt, worse decisions.", genres:["Racing"], mode:"Multiplayer", price:29.99, glyph:"🏁", grad:["#331a12","#7a3418"], desc:"Arcade rally racing across procedurally weathered routes. Sixteen-player lobbies, zero mercy, glorious wrecks.", quote:"The most fun I've had crashing a car in years.", outlet:"Drift Report", indie:false, platforms:["steam","xbox","playstation"]},
+    {id:"hollow-choir", title:"Hollow Choir", tagline:"Something in the chapel is still singing.", genres:["Horror","Walking Sim"], mode:"Singleplayer", price:14.99, glyph:"🕯️", grad:["#1a1520","#3a2340"], desc:"A slow-burn horror walk through a flooded seminary. The choir never stopped rehearsing — you're just late to the practice.", quote:"Dread you can hear coming from three rooms away.", outlet:"Late Night Load", indie:true, platforms:["steam","playstation"]},
+    {id:"scrapyard-regatta", title:"Scrapyard Regatta", tagline:"Built from junk. Raced like it matters.", genres:["Sports","Racing"], mode:"Co-op", price:9.99, glyph:"🚤", grad:["#152a1c","#1f4a30"], desc:"Bolt a boat together from scrapyard parts with a friend, then race it before the glue dries. Physics are a suggestion.", quote:"Chaotic, scrappy, and impossible to put down.", outlet:"Couch Co-op Weekly", indie:true, platforms:["steam","xbox"]},
+    {id:"drift-ember", title:"Drift & Ember", tagline:"A season at the lighthouse, one letter at a time.", genres:["Visual Novel","Romance"], mode:"Singleplayer", price:6.99, glyph:"📖", grad:["#3d2418","#6b3a20"], desc:"A slow, gentle visual novel about a lighthouse keeper's last summer and the letters that arrive anyway.", quote:"Unhurried, warm, and quietly devastating.", outlet:"Paper Lantern Reviews", indie:true, platforms:["steam"]},
+    {id:"ironclad-ledger", title:"Ironclad Ledger", tagline:"Trade routes. Broken treaties. Good cards.", genres:["Strategy","Card Battler"], mode:"Multiplayer", price:0, glyph:"🃏", grad:["#241c14","#4a3822"], desc:"A merchant-guild card battler where your deck is also your economy. Bluff a caravan, lose a war, win the market.", quote:"Deceptively deep for a free-to-play card game.", outlet:"The Backlog Report", indie:false, platforms:["steam","xbox"]},
+    {id:"static-orchard", title:"Static Orchard", tagline:"The orchard grows back wrong every night.", genres:["Platformer","Metroidvania"], mode:"Singleplayer", price:17.99, glyph:"🍎", grad:["#1c2a14","#33481f"], desc:"A metroidvania where the map redraws itself while you sleep. Learn the orchard's new shape or get lost in it.", quote:"One of the tightest movement systems in the genre.", outlet:"Pixel & Ink", indie:true, platforms:["steam","playstation"]},
+    {id:"undertow-signal", title:"Undertow Signal", tagline:"Two divers. One flooding station.", genres:["Action","Co-op"], mode:"Co-op", price:24.99, glyph:"🌊", grad:["#0d222e","#124155"], desc:"Cooperative underwater action as a flooding research station goes fully dark. One of you reads the map, one of you fights what's in it.", quote:"Tense, tight, and built for two people who trust each other.", outlet:"Late Night Load", indie:false, platforms:["steam","xbox","playstation"]},
+    {id:"molt", title:"Molt", tagline:"Shed the wrong skin, start the year over.", genres:["Puzzle","Horror"], mode:"Singleplayer", price:8.99, glyph:"🦋", grad:["#241a2c","#432752"], desc:"A tiny, unsettling puzzle game about a body that keeps molting into someone else's memories.", quote:"Small, strange, and stuck in my head for a week.", outlet:"Paper Lantern Reviews", indie:true, platforms:["steam"]},
+    {id:"tideglass-tactics", title:"Tideglass Tactics", tagline:"The tide is also a unit.", genres:["Strategy"], mode:"Multiplayer", price:19.99, glyph:"♟️", grad:["#101f2c","#1c3a4d"], desc:"Turn-based tactics on a coastline that floods and drains on a real clock. Time your assault or lose your army to the water.", quote:"Adds a genuinely new wrinkle to tactics combat.", outlet:"The Backlog Report", indie:false, platforms:["steam","xbox"]},
+    {id:"lantern-bone", title:"Lantern & Bone", tagline:"A small RPG about a very long walk home.", genres:["RPG","Adventure"], mode:"Singleplayer", price:15.99, glyph:"🏮", grad:["#2c1c14","#553220"], desc:"A hand-drawn RPG about walking a lantern across a continent that doesn't want you to arrive.", quote:"The best three-person team in indie RPGs right now.", outlet:"Pixel & Ink", indie:true, platforms:["steam","playstation"]},
+    {id:"culdesac-kart", title:"Cul-de-Sac Kart Club", tagline:"Every driveway is a track now.", genres:["Racing","Party"], mode:"Multiplayer", price:34.99, glyph:"🛞", grad:["#2c1710","#603018"], desc:"Neighborhood kart racing across backyards, driveways and one very contested cul-de-sac. Local party chaos, up to 8 players.", quote:"Mario Kart energy with its own personality.", outlet:"Drift Report", indie:false, platforms:["steam","xbox","playstation"]},
+    {id:"quietwork", title:"Quietwork", tagline:"A loom, a quiet house, no deadline.", genres:["Simulation"], mode:"Singleplayer", price:0, glyph:"🧵", grad:["#1a231c","#2e4232"], desc:"A no-fail weaving and mending sim about a quiet house that just needs tending to. No timers, no losing.", quote:"The most restorative fifteen minutes in gaming.", outlet:"Late Night Load", indie:true, platforms:["steam"]},
+    {id:"backline-blues", title:"Backline Blues", tagline:"Marching band, but it's a raid boss.", genres:["Sports","Co-op"], mode:"Co-op", price:22.99, glyph:"🎷", grad:["#241a10","#4a3318"], desc:"Cooperative rhythm-sports where your marching band formation is also your attack pattern against increasingly unreasonable opponents.", quote:"Unhinged premise, shockingly tight rhythm game.", outlet:"Couch Co-op Weekly", indie:true, platforms:["steam","xbox"]}
+  ];
+  var PLATFORM_META = {
+    steam:{label:"Steam", url:"https://store.steampowered.com"},
+    xbox:{label:"Xbox", url:"https://www.xbox.com/games"},
+    playstation:{label:"PlayStation", url:"https://www.playstation.com/en-us/games/"}
+  };
+  var ALL_GENRES = ["Action","Adventure","Card Battler","Co-op","Comedy","Horror","Metroidvania","Party","Platformer","Puzzle","RPG","Racing","Roguelike","Romance","Sci-Fi","Simulation","Sports","Strategy","Visual Novel","Walking Sim"];
+  var AVATARS = [
+    {emoji:"🎮", color:"#ff5a3c"},{emoji:"🕹️", color:"#4cc9c0"},{emoji:"👾", color:"#8a6cff"},
+    {emoji:"🦊", color:"#ff8a5c"},{emoji:"🐙", color:"#3fa9ff"},{emoji:"🐺", color:"#7d8296"},
+    {emoji:"🦉", color:"#c98a3f"},{emoji:"🐸", color:"#4caf6e"}
+  ];
+
+  /* ================= state ================= */
+  var DEFAULT_STATE = {
+    screen:"login",            // login | signup | forgot | forgotSent | verify | onboard | app
+    activeTab:"home",          // home | store | indie | profile
+    subScreen:null,            // "account" | "submitted"
+    signupDraft:{username:"", email:"", password:"", confirm:""},
+    otp:["","","","",""],
+    user:{name:"", email:"", avatar:AVATARS[0], genres:[], platforms:[], bio:"Still figuring out what I'm into."},
+    swiped:{},                 // id -> "liked" | "passed"
+    order:GAMES.map(function(g){return g.id;}),
+    affinity:{},               // genre -> score
+    filters:{genre:"All", mode:"All"},
+    navFaded:false,
+    toast:null,
+    notif:{matches:true, digest:false},
+    deleteConfirm:false
+  };
+  var state = loadState();
+
+  function loadState(){
+    try{
+      var raw = localStorage.getItem("lfg_demo_state_v1");
+      if(raw){
+        var parsed = JSON.parse(raw);
+        return Object.assign({}, DEFAULT_STATE, parsed, {toast:null});
+      }
+    }catch(e){}
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+  function saveState(){
+    try{
+      var copy = Object.assign({}, state, {toast:null});
+      localStorage.setItem("lfg_demo_state_v1", JSON.stringify(copy));
+    }catch(e){}
+  }
+  function esc(s){
+    return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function byId(id){ return GAMES.filter(function(g){return g.id===id;})[0]; }
+  function showToast(msg){
+    state.toast = msg;
+    render();
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){ state.toast=null; render(); }, 2200);
+  }
+
+  /* ================= icons ================= */
+  var ICONS = {
+    home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1h4v-6h3v6h4a1 1 0 0 0 1-1v-9"/></svg>',
+    indie:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4.5 6.3v7c0 4.6 3.2 7.2 7.5 8.2 4.3-1 7.5-3.6 7.5-8.2v-7L12 2.5Z"/><path d="M9 12.2l2 2 4-4.2"/></svg>',
+    profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.3"/><path d="M4.8 20c1.1-3.4 3.9-5.3 7.2-5.3s6.1 1.9 7.2 5.3"/></svg>',
+    store:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 5.2 4h13.6L20 9.5"/><path d="M4 9.5h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z"/><path d="M9.2 9.5v2.3a2.8 2.8 0 0 1-5.6 0V9.5M14.8 9.5v2.3a2.8 2.8 0 0 0 5.6 0V9.5"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.6 4.4 13c-2.2-2.2-2.2-5.7 0-7.9 2.1-2.1 5.4-2.1 7.5.1.1.1.1.1.1.2.1-.1.1-.1.1-.2 2.1-2.2 5.4-2.2 7.5-.1 2.2 2.2 2.2 5.7 0 7.9L12 20.6Z"/></svg>',
+    info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 8v.01"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>',
+    gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.3.9a7.7 7.7 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.7 7.7 0 0 0-1.7 1l-2.3-.9-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.3-.9c.5.4 1.1.75 1.7 1l.4 2.5h4l.4-2.5c.6-.25 1.2-.6 1.7-1l2.3.9 2-3.4-2-1.5Z"/></svg>',
+    bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.3 5.3 1.3 5.3H4.7S6 14 6 10Z"/><path d="M10 18.5a2 2 0 0 0 4 0"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+    logout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>'
+  };
+
+  function Logo(){
+    return '<span class="logo"><span class="logo-mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+ (getComputedStyle(document.documentElement).getPropertyValue('--accent-ink')||'#1b0b06') +'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 8-12 8V4Z" fill="currentColor" stroke="none"/></svg></span><span class="logo-word">LFG</span></span>';
+  }
+
+  /* ================= genre affinity / recommend ================= */
+  function bumpAffinity(game, dir){
+    game.genres.forEach(function(g){
+      state.affinity[g] = (state.affinity[g]||0) + (dir==="liked" ? 1 : -0.4);
+    });
+  }
+  function topGenre(){
+    var best=null, bestScore=-Infinity;
+    Object.keys(state.affinity).forEach(function(g){
+      if(state.affinity[g] > bestScore){ bestScore=state.affinity[g]; best=g; }
+    });
+    return (best && bestScore>0.4) ? best : null;
+  }
+  function currentDeck(){
+    var f = state.filters;
+    return state.order
+      .map(byId)
+      .filter(function(g){ return g && !state.swiped[g.id]; })
+      .filter(function(g){ return f.genre==="All" || g.genres.indexOf(f.genre)>-1; })
+      .filter(function(g){ return f.mode==="All" || g.mode===f.mode; })
+      .sort(function(a,b){
+        function score(g){ return g.genres.reduce(function(s,gg){return s+(state.affinity[gg]||0);},0); }
+        return score(b)-score(a);
+      });
+  }
+
+  /* ================= render ================= */
+  var root = document.getElementById("screen");
+
+  function render(){
+    saveState();
+    var html;
+    switch(state.screen){
+      case "login": html = viewLogin(); break;
+      case "signup": html = viewSignup(); break;
+      case "forgot": html = viewForgot(); break;
+      case "forgotSent": html = viewForgotSent(); break;
+      case "verify": html = viewVerify(); break;
+      case "onboard": html = viewOnboard(); break;
+      case "app": html = viewApp(); break;
+      default: html = viewLogin();
+    }
+    root.innerHTML = html;
+    bindGlobal();
+    switch(state.screen){
+      case "login": bindLogin(); break;
+      case "signup": bindSignup(); break;
+      case "forgot": bindForgot(); break;
+      case "forgotSent": bindForgotSent(); break;
+      case "verify": bindVerify(); break;
+      case "onboard": bindOnboard(); break;
+      case "app": bindApp(); break;
+    }
+  }
+
+  function bindGlobal(){
+    var toastEl = document.getElementById("toast-slot");
+    if(toastEl && state.toast){
+      toastEl.innerHTML = '<div class="toast">'+ICONS.check.replace('viewBox','width="16" height="16" viewBox')+'<span>'+esc(state.toast)+'</span></div>';
+    }
+  }
+
+  /* ---------- AUTH SCREENS ---------- */
+  function viewLogin(){
+    return ''+
+    '<div class="auth-wrap">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:44px;">'+
+        Logo()+
+        '<span class="build-tag"><span class="dot"></span>build 0.1 · prototype</span>'+
+      '</div>'+
+      '<div class="auth-head">'+
+        '<h1 style="font-size:26px;">Welcome back</h1>'+
+        '<p class="auth-tag">Your next favorite game is a few swipes away.</p>'+
+      '</div>'+
+      '<div class="field"><label>Email</label><input id="li-email" type="email" placeholder="you@inbox.com" autocomplete="email"><div class="err" id="li-email-err"></div></div>'+
+      '<div class="field"><label>Password</label><input id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password"><div class="err" id="li-pass-err"></div></div>'+
+      '<div style="text-align:right;margin:-10px 0 20px;"><button class="btn-link" id="go-forgot" style="padding:0;">Forgot password?</button></div>'+
+      '<button class="btn btn-primary btn-block" id="do-login">Log in</button>'+
+      '<div class="divider-row">or</div>'+
+      '<button class="btn btn-ghost btn-block" id="skip-demo">Just exploring — preview the app</button>'+
+      '<div class="auth-foot">New to LFG? <button class="btn-link" id="go-signup">Create an account</button></div>'+
+    '</div>';
+  }
+  function bindLogin(){
+    on("go-signup", "click", function(){ state.screen="signup"; render(); });
+    on("go-forgot", "click", function(){ state.screen="forgot"; render(); });
+    on("skip-demo", "click", function(){
+      if(!state.user.name){ state.user = Object.assign({}, state.user, {name:"Guest Player", email:"guest@lfg.app"}); }
+      state.screen="app"; render();
+    });
+    on("do-login", "click", function(){
+      var email = val("li-email"), pass = val("li-pass");
+      var ok = true;
+      if(!/^\S+@\S+\.\S+$/.test(email)){ setErr("li-email-err","Enter a valid email"); mark("li-email",true); ok=false; } else { setErr("li-email-err",""); mark("li-email",false); }
+      if(pass.length < 4){ setErr("li-pass-err","Password looks too short"); mark("li-pass",true); ok=false; } else { setErr("li-pass-err",""); mark("li-pass",false); }
+      if(!ok) return;
+      if(!state.user.name){ state.user = Object.assign({}, state.user, {name:email.split("@")[0], email:email}); }
+      state.screen = "app"; render();
+    });
+  }
+
+  function viewSignup(){
+    var d = state.signupDraft;
+    return ''+
+    backTopBar("go-login-back")+
+    '<div class="auth-wrap" style="padding-top:14px;">'+
+      '<div class="auth-head"><h1 style="font-size:26px;">Create your account</h1><p class="auth-tag">Tell us who\'s about to find a lot of new games.</p></div>'+
+      '<div class="field"><label>Username</label><input id="su-user" type="text" placeholder="shadowbyte" value="'+esc(d.username)+'"><div class="err" id="su-user-err"></div></div>'+
+      '<div class="field"><label>Email</label><input id="su-email" type="email" placeholder="you@inbox.com" value="'+esc(d.email)+'"><div class="err" id="su-email-err"></div></div>'+
+      '<div class="field"><label>Password</label><input id="su-pass" type="password" placeholder="At least 6 characters"><div class="err" id="su-pass-err"></div></div>'+
+      '<div class="field"><label>Confirm password</label><input id="su-confirm" type="password" placeholder="Repeat password"><div class="err" id="su-confirm-err"></div></div>'+
+      '<button class="btn btn-primary btn-block" id="do-signup">Create account</button>'+
+      '<div class="auth-foot">Already have one? <button class="btn-link" id="go-login">Log in</button></div>'+
+    '</div>';
+  }
+  function bindSignup(){
+    on("go-login-back", "click", function(){ state.screen="login"; render(); });
+    on("go-login", "click", function(){ state.screen="login"; render(); });
+    on("do-signup", "click", function(){
+      var u=val("su-user"), e=val("su-email"), p=val("su-pass"), c=val("su-confirm");
+      var ok=true;
+      if(u.trim().length<3){ setErr("su-user-err","Pick at least 3 characters"); mark("su-user",true); ok=false;} else {setErr("su-user-err","");mark("su-user",false);}
+      if(!/^\S+@\S+\.\S+$/.test(e)){ setErr("su-email-err","Enter a valid email"); mark("su-email",true); ok=false;} else {setErr("su-email-err","");mark("su-email",false);}
+      if(p.length<6){ setErr("su-pass-err","At least 6 characters"); mark("su-pass",true); ok=false;} else {setErr("su-pass-err","");mark("su-pass",false);}
+      if(c!==p || !c){ setErr("su-confirm-err","Passwords don't match"); mark("su-confirm",true); ok=false;} else {setErr("su-confirm-err","");mark("su-confirm",false);}
+      if(!ok) return;
+      state.signupDraft = {username:u, email:e, password:p, confirm:c};
+      state.user = Object.assign({}, state.user, {name:u, email:e});
+      state.otp = ["","","","",""];
+      state.screen = "verify"; render();
+    });
+  }
+
+  function viewForgot(){
+    return ''+
+    backTopBar("go-login-back2")+
+    '<div class="auth-wrap" style="padding-top:14px;">'+
+      '<div class="auth-head"><h1 style="font-size:24px;">Reset your password</h1><p class="auth-tag">We\'ll send a reset link to your inbox.</p></div>'+
+      '<div class="field"><label>Email</label><input id="fp-email" type="email" placeholder="you@inbox.com"><div class="err" id="fp-email-err"></div></div>'+
+      '<button class="btn btn-primary btn-block" id="do-forgot">Send reset link</button>'+
+      '<div class="auth-foot"><button class="btn-link" id="go-login-3">Back to log in</button></div>'+
+    '</div>';
+  }
+  function bindForgot(){
+    on("go-login-back2","click",function(){ state.screen="login"; render(); });
+    on("go-login-3","click",function(){ state.screen="login"; render(); });
+    on("do-forgot","click",function(){
+      var e = val("fp-email");
+      if(!/^\S+@\S+\.\S+$/.test(e)){ setErr("fp-email-err","Enter a valid email"); mark("fp-email",true); return; }
+      state.forgotEmail = e;
+      state.screen = "forgotSent"; render();
+    });
+  }
+
+  function viewForgotSent(){
+    return ''+
+    '<div class="auth-wrap" style="justify-content:center; align-items:center; text-align:center;">'+
+      '<div style="font-size:44px;margin-bottom:18px;">📬</div>'+
+      '<h1 style="font-size:22px;margin-bottom:10px;">Check your inbox</h1>'+
+      '<p class="auth-tag" style="max-width:280px;">If an LFG account exists for <b style="color:var(--text)">'+esc(state.forgotEmail||"that address")+'</b>, a reset link is on its way.</p>'+
+      '<button class="btn btn-primary" style="margin-top:26px;" id="back-login-4">Back to log in</button>'+
+    '</div>';
+  }
+  function bindForgotSent(){ on("back-login-4","click",function(){ state.screen="login"; render(); }); }
+
+  function viewVerify(){
+    var o = state.otp;
+    var boxes = o.map(function(v,i){
+      return '<input class="otp-box" data-i="'+i+'" maxlength="1" inputmode="numeric" value="'+esc(v)+'">';
+    }).join("");
+    var complete = o.every(function(v){return v!=="";});
+    return ''+
+    '<div class="auth-wrap">'+
+      '<div style="margin-bottom:30px;">'+Logo()+'</div>'+
+      '<div class="auth-head"><h1 style="font-size:24px;">Verify your email</h1><p class="auth-tag">We sent a 5-digit code to <b style="color:var(--text)">'+esc(state.user.email||"your email")+'</b>.</p></div>'+
+      '<div class="otp-row">'+boxes+'</div>'+
+      '<button class="btn btn-primary btn-block" id="do-verify" '+(complete?'':'disabled')+'>Verify &amp; continue</button>'+
+      '<div class="auth-foot">Didn\'t get it? <button class="btn-link" id="resend">Resend code</button></div>'+
+    '</div>';
+  }
+  function bindVerify(){
+    var boxes = root.querySelectorAll(".otp-box");
+    boxes.forEach(function(b){
+      b.addEventListener("input", function(){
+        var i = +b.dataset.i;
+        var v = b.value.replace(/[^0-9]/g,"").slice(0,1);
+        state.otp[i] = v;
+        if(v && boxes[i+1]) boxes[i+1].focus();
+        render();
+        var next = root.querySelectorAll(".otp-box")[Math.min(i+(v?1:0), boxes.length-1)];
+        if(next) next.focus();
+      });
+      b.addEventListener("keydown", function(e){
+        var i = +b.dataset.i;
+        if(e.key==="Backspace" && !b.value && boxes[i-1]) boxes[i-1].focus();
+      });
+    });
+    on("do-verify","click",function(){
+      if(!state.otp.every(function(v){return v!=="";})) return;
+      state.screen="onboard"; render();
+    });
+    on("resend","click",function(){ showToast("Code resent (demo) — try 00000"); });
+  }
+
+  function viewOnboard(){
+    var u = state.user;
+    var avatarOpts = AVATARS.map(function(a,i){
+      var on = u.avatar && u.avatar.emoji===a.emoji;
+      return '<div class="avatar-opt'+(on?' on':'')+'" data-i="'+i+'" style="background:'+a.color+'22;color:'+a.color+';">'+a.emoji+'</div>';
+    }).join("");
+    var genreChips = ALL_GENRES.map(function(g){
+      var on = u.genres.indexOf(g)>-1;
+      return '<div class="chip'+(on?' on':'')+'" data-genre="'+esc(g)+'">'+esc(g)+'</div>';
+    }).join("");
+    var plats = ["steam","xbox","playstation"].map(function(p){
+      var on = u.platforms.indexOf(p)>-1;
+      return '<div class="chip'+(on?' on':'')+'" data-plat="'+p+'">'+PLATFORM_META[p].label+'</div>';
+    }).join("");
+    return ''+
+    '<div class="auth-wrap" style="padding-top:34px;">'+
+      '<div class="auth-head"><h1 style="font-size:24px;">Set up your profile</h1><p class="auth-tag">This tunes your very first stack of games — swipes refine it from here.</p></div>'+
+      '<div class="field"><label>Display name</label><input id="ob-name" type="text" value="'+esc(u.name)+'"></div>'+
+      '<div class="field"><label>Pick an avatar</label><div class="avatar-grid" id="ob-avatars">'+avatarOpts+'</div></div>'+
+      '<div class="field"><label>Genres you like</label><div class="chip-grid" id="ob-genres">'+genreChips+'</div></div>'+
+      '<div class="field"><label>Where you play</label><div class="chip-grid" id="ob-plats">'+plats+'</div></div>'+
+      '<button class="btn btn-primary btn-block" id="do-onboard" style="margin-top:6px;">Enter LFG</button>'+
+    '</div>';
+  }
+  function bindOnboard(){
+    root.querySelectorAll("#ob-avatars .avatar-opt").forEach(function(el){
+      el.addEventListener("click", function(){ state.user.avatar = AVATARS[+el.dataset.i]; render(); });
+    });
+    root.querySelectorAll("#ob-genres .chip").forEach(function(el){
+      el.addEventListener("click", function(){
+        var g = el.dataset.genre;
+        var i = state.user.genres.indexOf(g);
+        if(i>-1) state.user.genres.splice(i,1); else state.user.genres.push(g);
+        render();
+      });
+    });
+    root.querySelectorAll("#ob-plats .chip").forEach(function(el){
+      el.addEventListener("click", function(){
+        var p = el.dataset.plat;
+        var i = state.user.platforms.indexOf(p);
+        if(i>-1) state.user.platforms.splice(i,1); else state.user.platforms.push(p);
+        render();
+      });
+    });
+    on("do-onboard","click",function(){
+      state.user.name = val("ob-name") || state.user.name || "Player";
+      state.user.genres.forEach(function(g){ state.affinity[g] = (state.affinity[g]||0) + 0.8; });
+      state.screen = "app"; state.activeTab="home"; render();
+    });
+  }
+
+  function backTopBar(id){
+    return '<div style="padding:16px 16px 0;"><button class="icon-btn" id="'+id+'">'+ICONS.back+'</button></div>';
+  }
+
+  /* ---------- APP SHELL ---------- */
+  var TABS = [
+    {id:"home", label:"Home", icon:"home"},
+    {id:"indie", label:"Indie Dev", icon:"indie"},
+    {id:"profile", label:"Profile", icon:"profile"},
+    {id:"store", label:"Store", icon:"store"}
+  ];
+
+  function viewApp(){
+    var body;
+    var headerTitle, headerSub;
+    if(state.subScreen==="account"){
+      return viewAccount();
+    }
+    switch(state.activeTab){
+      case "home": body = viewHome(); headerTitle="Discover"; headerSub="Swipe to find your next game"; break;
+      case "store": body = viewStore(); headerTitle="Your Store"; headerSub=(function(){var n=Object.keys(state.swiped).filter(function(k){return state.swiped[k]==="liked";}).length; return n+(n===1?" game":" games")+" wishlisted";})(); break;
+      case "indie": body = viewIndie(); headerTitle="Indie Dev"; headerSub="Discover & submit indie games"; break;
+      case "profile": body = viewProfile(); headerTitle="Profile"; headerSub="@"+ (state.user.name||"player").toLowerCase().replace(/\s+/g,""); break;
+    }
+    var navBtns = TABS.map(function(t){
+      var active = state.activeTab===t.id;
+      return '<button class="nav-btn'+(active?' active':'')+'" data-tab="'+t.id+'">'+ICONS[t.icon]+'<span>'+t.label+'</span></button>';
+    }).join("");
+    return ''+
+      '<div class="app-header">'+
+        '<div><div class="header-title">'+esc(headerTitle)+'</div><div class="header-sub">'+esc(headerSub)+'</div></div>'+
+        Logo()+
+      '</div>'+
+      '<div class="tab-content" id="tab-scroll"><div class="tab-pane">'+body+'</div></div>'+
+      '<div id="toast-slot"></div>'+
+      '<div class="navbar"><div class="navbar-inner'+(state.navFaded?' faded':'')+'" id="navbar-inner">'+navBtns+'</div></div>';
+  }
+
+  function bindApp(){
+    if(state.subScreen==="account"){ bindAccount(); return; }
+    root.querySelectorAll(".nav-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.activeTab = btn.dataset.tab;
+        state.subScreen = null;
+        wakeNav();
+        render();
+      });
+    });
+    setupNavIdle();
+    switch(state.activeTab){
+      case "home": bindHome(); break;
+      case "store": bindStore(); break;
+      case "indie": bindIndie(); break;
+      case "profile": bindProfile(); break;
+    }
+  }
+
+  var navTimer = null;
+  function wakeNav(){
+    state.navFaded = false;
+    var el = document.getElementById("navbar-inner");
+    if(el) el.classList.remove("faded");
+    clearTimeout(navTimer);
+    navTimer = setTimeout(function(){
+      state.navFaded = true;
+      var el2 = document.getElementById("navbar-inner");
+      if(el2) el2.classList.add("faded");
+    }, 2600);
+  }
+  function setupNavIdle(){
+    wakeNav();
+    var scroller = document.getElementById("tab-scroll");
+    ["pointerdown","scroll","touchmove"].forEach(function(evt){
+      if(scroller) scroller.addEventListener(evt, wakeNav, {passive:true});
+      root.addEventListener(evt, wakeNav, {passive:true});
+    });
+  }
+
+  /* ---------- HOME (swipe deck) ---------- */
+  function viewHome(){
+    var deck = currentDeck();
+    var tg = topGenre();
+    var genreFilters = ["All"].concat(ALL_GENRES.filter(function(g){
+      return GAMES.some(function(game){return game.genres.indexOf(g)>-1;});
+    }));
+    var filterChips = genreFilters.slice(0,9).map(function(g){
+      return '<div class="filter-chip'+(state.filters.genre===g?' on':'')+'" data-genre="'+esc(g)+'">'+esc(g)+'</div>';
+    }).join("");
+
+    if(!deck.length){
+      return ''+
+        '<div class="filter-row">'+filterChips+'</div>'+
+        '<div class="empty-deck">'+
+          '<div class="glyph">🎉</div>'+
+          '<h3 style="font-size:18px;">You\'ve cleared the queue</h3>'+
+          '<p style="color:var(--text-muted);font-size:13.5px;max-width:260px;">No more games match these filters right now. Widen your filters or replay the demo deck.</p>'+
+          '<button class="btn btn-primary" id="reset-deck">Replay demo deck</button>'+
+        '</div>';
+    }
+
+    var top = deck[0];
+    var cardsHtml = deck.slice(0,3).map(function(g,i){
+      var style = i===0 ? "" : "transform:translateY("+(i*10)+"px) scale("+(1-i*0.045)+"); z-index:"+(10-i)+"; opacity:"+(1-i*0.25)+";";
+      var grad = "linear-gradient(160deg,"+g.grad[0]+","+g.grad[1]+")";
+      return ''+
+      '<div class="card'+(i===0?" top-card":"")+'" data-id="'+g.id+'" style="'+style+' z-index:'+(10-i)+';">'+
+        '<div class="card-art" style="background:'+grad+';">'+
+          (g.indie?'<span class="indie-flag">Indie</span>':'')+
+          '<span>'+g.glyph+'</span>'+
+          (i===0? '<div class="stamp like" id="stamp-like">Yes</div><div class="stamp pass" id="stamp-pass">Pass</div>' : '')+
+        '</div>'+
+        '<div class="card-body">'+
+          '<div class="card-title-row"><span class="card-title">'+esc(g.title)+'</span><span class="card-price">'+(g.price===0?"Free":"$"+g.price.toFixed(2))+'</span></div>'+
+          '<div class="card-tagline">'+esc(g.tagline)+'</div>'+
+          '<div class="card-tags"><span class="tag mode">'+esc(g.mode)+'</span>'+g.genres.map(function(gg){return '<span class="tag">'+esc(gg)+'</span>';}).join("")+'</div>'+
+          '<div class="card-desc">'+esc(g.desc)+'</div>'+
+          '<div class="card-quote">"'+esc(g.quote)+'" — '+esc(g.outlet)+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    return ''+
+      '<div class="filter-row">'+filterChips+'</div>'+
+      (tg ? '<div class="affinity-note">'+ICONS.info.replace('viewBox','width="13" height="13" viewBox')+'<span>Leaning into <b>'+esc(tg)+'</b> based on your swipes</span></div>' : '')+
+      '<div class="deck" id="deck">'+cardsHtml+'</div>'+
+      '<div class="deck-controls">'+
+        '<button class="round-btn pass" id="btn-pass" title="Pass">'+ICONS.x+'</button>'+
+        '<button class="round-btn info" id="btn-info" title="Details">'+ICONS.info+'</button>'+
+        '<button class="round-btn like" id="btn-like" title="Add to wishlist">'+ICONS.heart+'</button>'+
+      '</div>';
+  }
+
+  function bindHome(){
+    root.querySelectorAll(".filter-chip").forEach(function(el){
+      el.addEventListener("click", function(){ state.filters.genre = el.dataset.genre; render(); });
+    });
+    on("reset-deck","click",function(){
+      state.swiped = {};
+      state.order = shuffle(GAMES.map(function(g){return g.id;}));
+      render();
+    });
+    var deck = currentDeck();
+    if(!deck.length) return;
+    var top = deck[0];
+    var cardEl = root.querySelector('.card[data-id="'+top.id+'"]');
+    if(!cardEl) return;
+
+    on("btn-pass","click",function(){ animateAndCommit(cardEl, "passed"); });
+    on("btn-like","click",function(){ animateAndCommit(cardEl, "liked"); });
+    on("btn-info","click",function(){ showToast(top.title+" — full trailer & reviewer links arrive once game data connects live."); });
+
+    var dragging=false, startX=0, startY=0, dx=0;
+    var likeStamp = document.getElementById("stamp-like");
+    var passStamp = document.getElementById("stamp-pass");
+
+    cardEl.addEventListener("pointerdown", function(e){
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      cardEl.classList.add("dragging");
+      cardEl.setPointerCapture(e.pointerId);
+    });
+    cardEl.addEventListener("pointermove", function(e){
+      if(!dragging) return;
+      dx = e.clientX - startX;
+      var dy = (e.clientY - startY) * 0.4;
+      var rot = dx/18;
+      cardEl.style.transform = "translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)";
+      var t = Math.min(Math.abs(dx)/110, 1);
+      if(likeStamp) likeStamp.style.opacity = dx>0 ? t : 0;
+      if(passStamp) passStamp.style.opacity = dx<0 ? t : 0;
+    });
+    function endDrag(e){
+      if(!dragging) return;
+      dragging = false;
+      cardEl.classList.remove("dragging");
+      if(Math.abs(dx) > 110){
+        animateAndCommit(cardEl, dx>0 ? "liked" : "passed");
+      } else {
+        cardEl.style.transform = "translate(0,0) rotate(0)";
+        if(likeStamp) likeStamp.style.opacity = 0;
+        if(passStamp) passStamp.style.opacity = 0;
+      }
+      dx = 0;
+    }
+    cardEl.addEventListener("pointerup", endDrag);
+    cardEl.addEventListener("pointercancel", endDrag);
+
+    function animateAndCommit(el, dir){
+      var flyX = dir==="liked" ? window.innerWidth : -window.innerWidth;
+      el.style.transition = "transform .38s cubic-bezier(.2,.8,.3,1), opacity .38s";
+      el.style.transform = "translate("+flyX+"px,-40px) rotate("+(dir==="liked"?24:-24)+"deg)";
+      el.style.opacity = "0";
+      setTimeout(function(){
+        state.swiped[top.id] = dir;
+        bumpAffinity(top, dir);
+        if(dir==="liked") showToast("Added "+top.title+" to your wishlist");
+        render();
+      }, 220);
+    }
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  /* ---------- STORE ---------- */
+  function viewStore(){
+    var liked = Object.keys(state.swiped).filter(function(k){return state.swiped[k]==="liked";}).map(byId).filter(Boolean);
+    if(!liked.length){
+      return '<div class="empty-hint">🛒<br><br>Nothing here yet. Swipe right on <b>Home</b> to start building your wishlist — matched games land here with links to buy.</div>';
+    }
+    return liked.map(function(g){
+      var grad = "linear-gradient(160deg,"+g.grad[0]+","+g.grad[1]+")";
+      var plats = g.platforms.map(function(p){
+        var m = PLATFORM_META[p];
+        return '<a class="plat-btn" href="'+m.url+'" target="_blank" rel="noopener">View on '+m.label+'</a>';
+      }).join("");
+      return ''+
+      '<div class="list-card">'+
+        '<div class="list-art" style="background:'+grad+';">'+g.glyph+'</div>'+
+        '<div class="list-body">'+
+          '<div class="list-title-row"><span class="list-title">'+esc(g.title)+'</span><button class="remove-x" data-remove="'+g.id+'">'+ICONS.x.replace('viewBox','width="15" height="15" viewBox')+'</button></div>'+
+          '<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">'+g.genres.join(" · ")+' · '+(g.price===0?"Free":"$"+g.price.toFixed(2))+'</div>'+
+          '<div class="platform-row">'+plats+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+  function bindStore(){
+    root.querySelectorAll("[data-remove]").forEach(function(el){
+      el.addEventListener("click", function(){
+        delete state.swiped[el.dataset.remove];
+        render();
+      });
+    });
+  }
+
+  /* ---------- INDIE DEV ---------- */
+  function viewIndie(){
+    var spotlight = GAMES.filter(function(g){return g.indie;}).slice(0,4);
+    var spotlightHtml = spotlight.map(function(g){
+      var grad = "linear-gradient(160deg,"+g.grad[0]+","+g.grad[1]+")";
+      var liked = state.swiped[g.id]==="liked";
+      return ''+
+      '<div class="list-card">'+
+        '<div class="list-art" style="background:'+grad+';">'+g.glyph+'</div>'+
+        '<div class="list-body">'+
+          '<div class="list-title-row"><span class="list-title">'+esc(g.title)+'</span></div>'+
+          '<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">'+esc(g.tagline)+'</div>'+
+          '<div class="platform-row"><button class="plat-btn" data-wishlist="'+g.id+'" style="border-color:var(--accent);color:var(--accent);">'+(liked?"On your wishlist":"+ Add to wishlist")+'</button></div>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+
+    if(state.subScreen==="submitted"){
+      return ''+
+      '<div class="empty-deck" style="padding-top:60px;">'+
+        '<div class="glyph">🚀</div>'+
+        '<h3 style="font-size:18px;">Submitted for review</h3>'+
+        '<p style="color:var(--text-muted);font-size:13.5px;max-width:260px;">Our (fictional, demo) curation team looks at every submission within 5 business days.</p>'+
+        '<button class="btn btn-ghost" id="submit-back">Back to Indie Dev</button>'+
+      '</div>';
+    }
+
+    return ''+
+      '<div class="indie-hero">'+
+        '<h2>Get discovered on LFG</h2>'+
+        '<p>Every swipe-right on your game adds it to a real wishlist and surfaces it higher for players with matching taste. No algorithm blackout — just genre and mode signal, same as everyone else.</p>'+
+      '</div>'+
+      '<div class="section-label">This week\'s indie spotlight</div>'+
+      spotlightHtml+
+      '<div class="section-label" style="margin-top:22px;">Submit your game</div>'+
+      '<div class="field"><label>Game title</label><input id="dev-title" type="text" placeholder="e.g. Molt"></div>'+
+      '<div class="field"><label>Store link</label><input id="dev-link" type="text" placeholder="https://store.steampowered.com/..."></div>'+
+      '<div class="field"><label>One-line pitch</label><textarea id="dev-pitch" placeholder="What makes it worth swiping right on?"></textarea></div>'+
+      '<div class="field"><label>Contact email</label><input id="dev-email" type="email" placeholder="studio@yourgame.dev"></div>'+
+      '<div class="form-note">Prototype form — nothing is sent yet. Wiring this to a real inbox is a backend step.</div>'+
+      '<button class="btn btn-primary btn-block" id="dev-submit">Submit for review</button>';
+  }
+  function bindIndie(){
+    root.querySelectorAll("[data-wishlist]").forEach(function(el){
+      el.addEventListener("click", function(){
+        var id = el.dataset.wishlist;
+        if(state.swiped[id]!=="liked"){
+          state.swiped[id] = "liked";
+          bumpAffinity(byId(id), "liked");
+          showToast("Added "+byId(id).title+" to your wishlist");
+        }
+        render();
+      });
+    });
+    on("dev-submit","click",function(){
+      var title = val("dev-title");
+      if(!title.trim()){ showToast("Add a game title first"); return; }
+      state.subScreen = "submitted"; render();
+    });
+    on("submit-back","click",function(){ state.subScreen=null; render(); });
+  }
+
+  /* ---------- PROFILE ---------- */
+  function viewProfile(){
+    var u = state.user;
+    var likedCount = Object.keys(state.swiped).filter(function(k){return state.swiped[k]==="liked";}).length;
+    var passedCount = Object.keys(state.swiped).filter(function(k){return state.swiped[k]==="passed";}).length;
+    var tg = topGenre() || "—";
+    var genreChips = (u.genres.length?u.genres:["Add your favorite genres"]).map(function(g){return '<span class="tag">'+esc(g)+'</span>';}).join("");
+    var platChips = (u.platforms.length?u.platforms:[]).map(function(p){return '<span class="tag">'+PLATFORM_META[p].label+'</span>';}).join("") || '<span class="tag">No platforms set</span>';
+    return ''+
+    '<div class="profile-head">'+
+      '<div class="profile-avatar" style="background:'+u.avatar.color+'22;color:'+u.avatar.color+';">'+u.avatar.emoji+'</div>'+
+      '<div class="profile-name">'+esc(u.name||"Player")+'</div>'+
+      '<div class="profile-tag">'+esc(u.bio)+'</div>'+
+    '</div>'+
+    '<div class="stat-row">'+
+      '<div class="stat-card"><div class="stat-num">'+likedCount+'</div><div class="stat-lbl">Liked</div></div>'+
+      '<div class="stat-card"><div class="stat-num">'+passedCount+'</div><div class="stat-lbl">Passed</div></div>'+
+      '<div class="stat-card"><div class="stat-num" style="font-size:14px;">'+esc(tg)+'</div><div class="stat-lbl">Top genre</div></div>'+
+    '</div>'+
+    '<div class="section-label">Favorite genres</div>'+
+    '<div class="chip-grid" style="margin-bottom:20px;">'+genreChips+'</div>'+
+    '<div class="section-label">Platforms</div>'+
+    '<div class="chip-grid" style="margin-bottom:22px;">'+platChips+'</div>'+
+    '<div class="section-label">Settings</div>'+
+    '<div>'+
+      '<div class="menu-row" id="open-account"><span class="menu-row-left">'+ICONS.gear.replace('viewBox','width="17" height="17" viewBox')+' Account &amp; settings</span><span style="color:var(--text-faint);">›</span></div>'+
+      '<div class="menu-row" id="do-logout"><span class="menu-row-left" style="color:var(--danger);">'+ICONS.logout.replace('viewBox','width="17" height="17" viewBox')+' Log out</span></div>'+
+    '</div>';
+  }
+  function bindProfile(){
+    on("open-account","click",function(){ state.subScreen="account"; render(); });
+    on("do-logout","click",function(){
+      state.screen="login"; state.activeTab="home"; state.subScreen=null;
+      showToast("Logged out");
+      render();
+    });
+  }
+
+  /* ---------- ACCOUNT (sub-screen) ---------- */
+  function viewAccount(){
+    var u = state.user;
+    var n = state.notif;
+    return ''+
+    '<div class="back-header"><button class="icon-btn" id="acct-back">'+ICONS.back+'</button><h3 style="font-size:17px;">Account &amp; settings</h3></div>'+
+    '<div class="tab-content"><div class="tab-pane">'+
+      '<div class="section-label">Profile</div>'+
+      '<div class="field"><label>Display name</label><input id="acct-name" type="text" value="'+esc(u.name)+'"></div>'+
+      '<div class="field"><label>Email</label><input id="acct-email" type="email" value="'+esc(u.email)+'"></div>'+
+      '<div class="field"><label>Bio</label><textarea id="acct-bio">'+esc(u.bio)+'</textarea></div>'+
+      '<button class="btn btn-primary btn-block" id="acct-save" style="margin-bottom:26px;">Save changes</button>'+
+
+      '<div class="section-label">Notifications</div>'+
+      '<div class="menu-row"><span class="menu-row-left">'+ICONS.bell.replace('viewBox','width="17" height="17" viewBox')+' New match alerts</span><div class="toggle'+(n.matches?' on':'')+'" id="tg-matches"><div class="toggle-knob"></div></div></div>'+
+      '<div class="menu-row"><span class="menu-row-left">'+ICONS.bell.replace('viewBox','width="17" height="17" viewBox')+' Weekly indie digest</span><div class="toggle'+(n.digest?' on':'')+'" id="tg-digest"><div class="toggle-knob"></div></div></div>'+
+
+      '<div class="section-label" style="margin-top:26px;">Danger zone</div>'+
+      (state.deleteConfirm ?
+        '<div class="confirm-row"><button class="btn btn-ghost" id="del-cancel">Cancel</button><button class="btn" style="background:var(--danger);color:#fff;" id="del-confirm">Yes, delete</button></div>'
+        : '<button class="danger-btn" id="del-account">Delete account</button>')+
+    '</div></div>';
+  }
+  function bindAccount(){
+    on("acct-back","click",function(){ state.subScreen=null; render(); });
+    on("acct-save","click",function(){
+      state.user.name = val("acct-name")||state.user.name;
+      state.user.email = val("acct-email")||state.user.email;
+      state.user.bio = val("acct-bio")||state.user.bio;
+      showToast("Settings saved");
+      render();
+    });
+    on("tg-matches","click",function(){ state.notif.matches=!state.notif.matches; render(); });
+    on("tg-digest","click",function(){ state.notif.digest=!state.notif.digest; render(); });
+    on("del-account","click",function(){ state.deleteConfirm=true; render(); });
+    on("del-cancel","click",function(){ state.deleteConfirm=false; render(); });
+    on("del-confirm","click",function(){
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      try{ localStorage.removeItem("lfg_demo_state_v1"); }catch(e){}
+      render();
+    });
+  }
+
+  /* ---------- helpers ---------- */
+  function on(id, evt, fn){ var el=document.getElementById(id); if(el) el.addEventListener(evt, fn); }
+  function val(id){ var el=document.getElementById(id); return el ? el.value : ""; }
+  function setErr(id, msg){ var el=document.getElementById(id); if(el) el.textContent = msg; }
+  function mark(id, bad){ var el=document.getElementById(id); if(el) el.classList.toggle("invalid", !!bad); }
+
+  /* hot-reload friendliness for the artifact host */
+  function boot(initial){
+    if(initial && initial.state){ state = Object.assign({}, state, initial.state); }
+    render();
+  }
+  try{
+    if(window.claude && window.claude.hot){
+      window.claude.hot.snapshot(function(){ return {state: state}; });
+      window.claude.hot.ready ? window.claude.hot.ready(boot) : boot(window.claude.hot.data ? {state:window.claude.hot.data} : null);
+    } else {
+      boot(null);
+    }
+  }catch(e){ boot(null); }
+})();
+</script>
