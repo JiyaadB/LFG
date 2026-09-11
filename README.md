@@ -20,26 +20,4 @@ Profile & social layer — stats, favorite genres, platforms owned, account sett
 TikTok-style bottom nav — Home, Indie Dev, Profile, Store — fades out when you're not touching the screen, fades back in the moment you are.
 Status
 
-🚧 Early prototype. The swipe mechanics, full auth flow (login/sign-up/forgot password/email verification/onboarding), and all four core tabs are built and clickable end-to-end against mock game data. No real backend yet — see Roadmap.
-
-		
-Show Image	Show Image	Show Image
-Tech stack
-
-Right now: a single dependency-free HTML/CSS/JS prototype — no build step, no framework, runs by opening the file in a browser. That was a deliberate call for v1, to move fast and get every screen clickable before committing to an architecture.
-
-Where this is headed:
-
-Frontend: React, rebuilt from this prototype once the design's locked in.
-Backend: real accounts + database (Supabase/Firebase, TBD) so wishlists and profiles sync across devices.
-Native app: the same React codebase wrapped with Capacitor to ship as an installable iOS/Android app — one codebase, three surfaces, all hitting the same backend, which is what makes your data follow you the way it does on apps like TikTok.
-Roadmap
- Real authentication & accounts
- Real game database + trailer/reviewer links (currently placeholders)
- TikTok-style video feed of game content
- Deeper indie developer submission pipeline
- Friend-finding / social layer around reviews
- React rebuild + Capacitor wrap for iOS/Android
-Running the prototype
-
-No install needed — open lfg.html in any browser. It's a single self-contained file.
+🚧 Early prototype. The swipe mechanics, full auth flow (login/sign-up/forgot password/email verification/onboarding), and all four core tabs are built and clickable end-to-end against mock game data. No real backend yet 
